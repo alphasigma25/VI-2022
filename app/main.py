@@ -6,6 +6,7 @@ from dash.dependencies import Input, Output
 import plotly.express as px
 import pandas as pd
 import numpy as np
+import data_util
 
 app = Dash(__name__)
 
@@ -19,33 +20,139 @@ app.layout = html.Div([
     html.Div(id='rootDiv')
 ])
 
-# --------------- view2 : Salaires et Postes --------------- #
+
+# ------------- tech_layout : Technologies plus utilisées ---------- #
+
+techs_layout = html.Div([
+    html.Div([
+        html.Div([
+            dcc.Dropdown(
+                data_util.DevType,
+                data_util.DevType[0],
+                id='devType_t',
+                clearable=False
+            )
+        ], style={'width': '48%', 'display': 'inline-block'}),
+
+        html.Div([
+            dcc.Dropdown(
+                data_util.EdLevel,
+                data_util.EdLevel[0],
+                id='edLevel_t',
+                clearable=False
+            )
+        ], style={'width': '48%', 'display': 'inline-block'}),
+
+        html.Div([
+            dcc.Dropdown(
+                data_util.Employment,
+                data_util.Employment[0],
+                id='employment_t',
+                clearable=False
+            )
+        ], style={'width': '48%', 'display': 'inline-block'}),
+
+        html.Div([
+            dcc.Dropdown(
+                data_util.Age,
+                data_util.Age[0],
+                id='age_t',
+                clearable=False
+            )
+        ], style={'width': '48%', 'display': 'inline-block'}),
+
+        html.Div([
+            dcc.Dropdown(
+                data_util.tech_selected_columns[6:],
+                data_util.tech_selected_columns[6],
+                id='outputName_t',
+                clearable=False
+            )
+        ], style={'width': '48%', 'display': 'inline-block'}),
+    ]),
+
+    dcc.Graph(id='techs-graphic')
+])
+
+df_techs = pd.read_csv('tech_data.csv')
+
 @app.callback(
-    Output("graph", "figure"),
-    Input("y-axis", "value"))
-def display_area(y):
-    df = pd.read_csv('salary_by_category.csv', index_col=0)
-    # Display the histogram for the Data Scientists
-    df['DevType'] = df['DevType'].fillna("")
-    df_ds = df[df['DevType'].str.contains("Data scientist")]
-    df_ds
+    Output('techs-graphic', 'figure'),
+    Input('devType_t', 'value'),
+    Input('edLevel_t', 'value'),
+    Input('employment_t', 'value'),
+    Input('age_t', 'value'),
+    Input('outputName_t', 'value'))
+def update_techs(devType, edLevel, employment, age, outputName):
+    data = data_util.getTechOutput(df_techs, devType, edLevel, employment, age, outputName)
+    data.dropna()
 
-    # Filter the salary to remove the outliers
-    df_ds = df_ds.loc[df_ds['YearlySalary'] > df_ds.YearlySalary.quantile(0.1)]
-    df_ds = df_ds.loc[df_ds['YearlySalary'] < df_ds.YearlySalary.quantile(0.9)]
+    fig = px.scatter(data, x="YearsCodePro", y="CompTotal",
+                 hover_name="techs", text="techs", size='Number', size_max=10)
 
-    df_ds = df_ds.sort_values(by=['YearsCodePro'])
-    df_exp = pd.DataFrame()
-    df_exp["YearlySalary"] = [df_ds.loc[df_ds["YearsCodePro"] == 0]["YearlySalary"].mean(),
-                            df_ds.loc[df_ds["YearsCodePro"].between(1, 4, inclusive="both")]["YearlySalary"].mean(),
-                            df_ds.loc[df_ds["YearsCodePro"].between(5, 9, inclusive="both")]["YearlySalary"].mean(),
-                            df_ds.loc[df_ds["YearsCodePro"].between(10, 19, inclusive="both")]["YearlySalary"].mean(),
-                            df_ds.loc[df_ds["YearsCodePro"] >= 20]["YearlySalary"].mean()]
+    fig.update_layout(margin={'l': 40, 'b': 40, 't': 10, 'r': 0}, hovermode='closest')
+    fig.update_xaxes(title="Years of Experience")
+    fig.update_yaxes(title="Salary")
+    fig.update_traces(textposition='top center')
+    return fig
 
-    df_exp.index = np.arange(0, 21, 5)
-    df_exp["YearlySalary"] = df_exp["YearlySalary"].round(-3)
+# --------------- salary_layout : Salaires et Postes --------------- #
 
-    fig = px.area(df_exp, y='YearlySalary', range_y=[80e3,160e3], line_shape='spline' ,title="Data Scientist<br><sup>Pay by experience</sup>", width=750, height=500)
+salary_layout = html.Div([
+        html.Div([
+           html.Div([
+            dcc.Dropdown(
+                data_util.DevType,
+                data_util.DevType[0],
+                id='devType_s',
+                clearable=False
+            )
+        ], style={'width': '48%', 'display': 'inline-block'}),
+
+        html.Div([
+            dcc.Dropdown(
+                data_util.EdLevel,
+                data_util.EdLevel[0],
+                id='edLevel_s',
+                clearable=False
+            )
+        ], style={'width': '48%', 'display': 'inline-block'}),
+
+        html.Div([
+            dcc.Dropdown(
+                data_util.OrgSize,
+                data_util.OrgSize[0],
+                id='orgSize_s',
+                clearable=False
+            )
+        ], style={'width': '48%', 'display': 'inline-block'}),
+
+        html.Div([
+            dcc.Dropdown(
+                data_util.countries,
+                data_util.countries[0],
+                id='country_s',
+                clearable=False
+            )
+        ], style={'width': '48%', 'display': 'inline-block'}),
+
+        dcc.Graph(id="salary-graphic")
+        ]),
+    ])
+
+
+df_salary = pd.read_csv('salary_by_category.csv', index_col=0)
+
+@app.callback(
+    Output("salary-graphic", "figure"),
+    Input("devType_s", "value"),
+    Input("edLevel_s", "value"),
+    Input("orgSize_s", "value"),
+    Input("country_s", "value"))
+def display_area(devType, edLevel, orgSize, country):
+    df_exp = data_util.getAreaOutput(df_salary, devType, edLevel, orgSize, country)
+
+    fig = px.area(df_exp, y='YearlySalary', range_y=[80e3,160e3], line_shape='spline' ,title=f"{devType}<br><sup>Pay by experience</sup>", width=750, height=500)
     fig.update_traces(mode="lines", hovertemplate=None)
     fig.update_layout(hovermode="y",
         xaxis_title="Experience",
@@ -60,23 +167,18 @@ def display_area(y):
     )
     return fig
 
-view2 = html.Div([
-            dcc.Dropdown(
-                id='y-axis',
-                options=['lifeExp', 'pop', 'gdpPercap'],
-                value='gdpPercap'),
-            dcc.Graph(id="graph")
-        ])
+
+# ----------------------------- main ------------------------------- #
 
 @app.callback(Output('rootDiv', 'children'),
               Input('visualisations', 'value'))
 def render_content(tab):
     if tab == 'T1':
-        return view1.view
+        return techs_layout
     elif tab == 'T2':
-        return view2
+        return salary_layout
     elif tab == 'T3':
         return view3.view
 
 if __name__ == '__main__':
-    app.run_server(debug=False)
+    app.run_server(debug=True)

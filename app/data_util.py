@@ -1,9 +1,10 @@
 import pandas as pd
+import numpy as np
 
 countries = [
     'United States of America',
     'Switzerland',
-    'United Kingdom of Great Britain and Northern Ireland',
+    'United Kingdom',
     'France',
     'Germany',
     'Netherlands',
@@ -66,13 +67,25 @@ Employment = [
 EdLevel = [
     "Master",
     "Bachelor",
-    'Secondary school (e.g. American high school, German Realschule or Gymnasium, etc.)',
-    'Some college/university study without earning a degree',
+    'Gymnasium',
+    'University study without earning a degree',
     'Something else',
-    'Primary/elementary school',
-    'Other doctoral degree (Ph.D., Ed.D., etc.)',
-    'Associate degree (A.A., A.S., etc.)',
-    'Professional degree (JD, MD, etc.)'
+    'Elementary school',
+    'Ph.D.',
+    'Associate degree',
+    'Professional degree'
+]
+
+OrgSize = [
+    '1',
+    '2 - 9',
+    '10 - 19',
+    '20 - 99',
+    '100 - 499',
+    '500 - 999',
+    '1,000 - 4,999',
+    '5,000 - 9,999',
+    '10,000+',
 ]
 
 Age = [
@@ -226,3 +239,32 @@ def getTechOutput(data, devType, edLevel, employment, age, outputName):
     df = filter_multicat(df,'Age', age)
     # il faut calculer salaire moyen et nb années exp moyen
     return aggregate_techs(df, outputName)
+
+# --------------- salary_layout : Salaires et Postes --------------- #
+
+def getAreaOutput(data, devType, edLevel, orgSize, country):
+    df = data
+    df = filter_multicat(df,'DevType',devType)
+    df = filter_multicat(df,'EdLevel',edLevel)
+    df = filter_multicat(df,'OrgSize',orgSize)
+    df = filter_multicat(df,'Country',country)
+    # Display the histogram for the Data Scientists
+    df['DevType'] = df['DevType'].fillna("")
+    # df_ds = df[df['DevType'].str.contains("Data scientist")]
+
+    # Filter the salary to remove the outliers
+    df = df.loc[df['YearlySalary'] > df.YearlySalary.quantile(0.1)]
+    df = df.loc[df['YearlySalary'] < df.YearlySalary.quantile(0.9)]
+
+    df = df.sort_values(by=['YearsCodePro'])
+    df_exp = pd.DataFrame()
+    df_exp["YearlySalary"] = [df.loc[df["YearsCodePro"] == 0]["YearlySalary"].mean(),
+                            df.loc[df["YearsCodePro"].between(1, 4, inclusive="both")]["YearlySalary"].mean(),
+                            df.loc[df["YearsCodePro"].between(5, 9, inclusive="both")]["YearlySalary"].mean(),
+                            df.loc[df["YearsCodePro"].between(10, 19, inclusive="both")]["YearlySalary"].mean(),
+                            df.loc[df["YearsCodePro"] >= 20]["YearlySalary"].mean()]
+
+    df_exp.index = np.arange(0, 21, 5)
+    df_exp["YearlySalary"] = df_exp["YearlySalary"].round(-3)
+
+    return df_exp
