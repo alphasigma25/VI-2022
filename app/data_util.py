@@ -268,3 +268,26 @@ def getAreaOutput(data, devType, edLevel, orgSize, country):
     df_exp["YearlySalary"] = df_exp["YearlySalary"].round(-3)
 
     return df_exp
+
+# --------------- health_layout : Santé mentale --------------- #
+
+MIN_SALARY = 0
+MAX_SALARY = 4e6
+
+def aggregate_health(data, mental_health_type):
+    output = {'DevType':[], mental_health_type:[]}
+    for devType in DevType:
+        df = filter_multicat(data, 'DevType', devType)
+        total = df.shape[0]
+        output['DevType'].append(devType)
+        output[mental_health_type].append(df[mental_health_type].count()/total)
+    return pd.DataFrame(output)
+
+def getHealthOutput(data, salary_min, salary_max, mental_health_type):
+    df = data
+    # Filter the salary
+    df = df.loc[df['YearlySalary'] > salary_min]
+    df = df.loc[df['YearlySalary'] < salary_max]
+
+    # Get the proportion of the data for each DevType
+    return aggregate_health(df, mental_health_type)
