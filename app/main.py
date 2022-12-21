@@ -99,15 +99,15 @@ def update_techs(devType, edLevel, employment, age, outputName):
 # --------------- salary_layout : Salaires et Postes --------------- #
 
 salary_layout = html.Div([
+    html.Div([
         html.Div([
-           html.Div([
-            dcc.Dropdown(
-                data_util.DevType,
-                data_util.DevType[0],
-                id='devType_s',
-                clearable=False
-            )
-        ], style={'width': '48%', 'display': 'inline-block'}),
+        dcc.Dropdown(
+            data_util.DevType,
+            data_util.DevType[0],
+            id='devType_s',
+            clearable=False
+        )
+    ], style={'width': '48%', 'display': 'inline-block'}),
 
         html.Div([
             dcc.Dropdown(
@@ -137,8 +137,8 @@ salary_layout = html.Div([
         ], style={'width': '48%', 'display': 'inline-block'}),
 
         dcc.Graph(id="salary-graphic")
-        ]),
     ])
+])
 
 
 df_salary = pd.read_csv('salary_by_category.csv', index_col=0)
@@ -152,7 +152,16 @@ df_salary = pd.read_csv('salary_by_category.csv', index_col=0)
 def display_area(devType, edLevel, orgSize, country):
     df_exp = data_util.getAreaOutput(df_salary, devType, edLevel, orgSize, country)
 
-    fig = px.area(df_exp, y='YearlySalary', range_y=[80e3,160e3], line_shape='spline' ,title=f"{devType}<br><sup>Pay by experience</sup>", width=750, height=500)
+    # Compute the range of the data, then floor/ceil it to the nearest 20e4 number
+    # round_scale = 20e4
+    # min_range = df_exp["YearlySalary"].min()
+    # min_range = int(np.floor(min_range / round_scale) * round_scale)
+    # max_range = df_exp["YearlySalary"].max()
+    # max_range = int(np.ceil(min_range / round_scale) * round_scale)
+    min_range = 80e4
+    max_range = 160e4
+
+    fig = px.area(df_exp, y='YearlySalary', range_y=[min_range, max_range], line_shape='spline' ,title=f"{devType}<br><sup>Pay by experience</sup>", width=750, height=500)
     fig.update_traces(mode="lines", hovertemplate=None)
     fig.update_layout(hovermode="y",
         xaxis_title="Experience",
@@ -167,6 +176,47 @@ def display_area(devType, edLevel, orgSize, country):
     )
     return fig
 
+# ------------------------ Mental Health --------------------------- #
+
+health_layout = html.Div([
+    html.Div([
+        dcc.Graph(id="mood-graphic"),
+        dcc.Graph(id="anxiety-graphic")
+    ], style={'width': '48%', 'display': 'inline-block'}),
+    html.Div([
+        dcc.RangeSlider(
+            data_util.MIN_SALARY,
+            data_util.MAX_SALARY,
+            value=[data_util.MIN_SALARY, data_util.MAX_SALARY],
+            marks=None,
+            id='salary'
+        )
+    ], style={'width': '48%', 'display': 'inline-block'}),
+])
+
+df_health = pd.read_csv('mental_health.csv', index_col=0)
+
+def update_mental_health(df, mental_health_type):
+    fig = px.bar(df, x='DevType', y=mental_health_type, orientation='h')
+    fig.update_layout(hovermode="y",
+        xaxis_title="Dev Type",
+        yaxis_title=f"% people with {mental_health_type} disorder")
+    return fig
+
+@app.callback(
+    Output("mood-graphic", "figure"),
+    [Input("salary", "value")])
+def update_mood(salary):
+    df = data_util.getHealthOutput(df_health, salary[0],salary[1], 'Depression')
+    return update_mental_health(df, 'Depression')
+
+@app.callback(
+    Output("anxiety-graphic", "figure"),
+    [Input("salary", "value")])
+def update_anxiety(salary):
+    df = data_util.getHealthOutput(df_health, salary[0],salary[1], 'Anxiety')
+    return update_mental_health(df, 'Anxiety')
+
 
 # ----------------------------- main ------------------------------- #
 
@@ -178,7 +228,7 @@ def render_content(tab):
     elif tab == 'T2':
         return salary_layout
     elif tab == 'T3':
-        return view3.view
+        return health_layout
 
 if __name__ == '__main__':
     app.run_server(debug=True)
