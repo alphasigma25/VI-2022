@@ -153,13 +153,13 @@ def display_area(devType, edLevel, orgSize, country):
     df_exp = data_util.getAreaOutput(df_salary, devType, edLevel, orgSize, country)
 
     # Compute the range of the data, then floor/ceil it to the nearest 20e4 number
-    # round_scale = 20e4
-    # min_range = df_exp["YearlySalary"].min()
-    # min_range = int(np.floor(min_range / round_scale) * round_scale)
-    # max_range = df_exp["YearlySalary"].max()
-    # max_range = int(np.ceil(min_range / round_scale) * round_scale)
-    min_range = 80e4
-    max_range = 160e4
+    round_scale = 20e3
+    min_range = df_exp["YearlySalary"].min()
+    min_range = int(np.floor(min_range / round_scale) * round_scale)
+    max_range = df_exp["YearlySalary"].max()
+    max_range = int(np.ceil(max_range / round_scale) * round_scale)
+    # min_range = 80e4
+    # max_range = 160e4
 
     fig = px.area(df_exp, y='YearlySalary', range_y=[min_range, max_range], line_shape='spline' ,title=f"{devType}<br><sup>Pay by experience</sup>", width=750, height=500)
     fig.update_traces(mode="lines", hovertemplate=None)
