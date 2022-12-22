@@ -47,7 +47,7 @@ DevType = [
     'Product manager',
     'Engineer, site reliability',
     'Educator',
-    'Other (please specify):',
+    'Other',
     'Blockchain',
     'Student'
 ]
@@ -229,7 +229,9 @@ def aggregate_techs(data, outputName):
         output['CompTotal'].append(df['CompTotal'].mean())
         output['YearsCodePro'].append(df['YearsCodePro'].mean())
         output['Number'].append(len(df))
-    return pd.DataFrame(output)
+    output = pd.DataFrame(output)
+    output.sort_values(by=['Number'])
+    return output.head(10)
 
 def getTechOutput(data, devType, edLevel, employment, age, outputName):
     df = data
@@ -274,14 +276,16 @@ def getAreaOutput(data, devType, edLevel, orgSize, country):
 MIN_SALARY = 0
 MAX_SALARY = 4e6
 
-def aggregate_health(data, mental_health_type):
-    output = {'DevType':[], mental_health_type:[]}
+def aggregate_health(data, mental_health_type: str):
+    output = pd.DataFrame()
+    numbers = []
     for devType in DevType:
         df = filter_multicat(data, 'DevType', devType)
         total = df.shape[0]
-        output['DevType'].append(devType)
-        output[mental_health_type].append(df[mental_health_type].count()/total)
-    return pd.DataFrame(output)
+        numbers.append(filter_multicat(df, 'MentalHealth', mental_health_type.lower())/total)
+    output['DevType'] = DevType
+    output[mental_health_type] = numbers
+    return output
 
 def getHealthOutput(data, salary_min, salary_max, mental_health_type):
     df = data
