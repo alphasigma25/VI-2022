@@ -282,10 +282,13 @@ def aggregate_health(data, mental_health_type: str):
     for devType in DevType:
         df = filter_multicat(data, 'DevType', devType)
         total = df.shape[0]
-        numbers.append(filter_multicat(df, 'MentalHealth', mental_health_type.lower())/total)
+        if total > 0:
+            numbers.append(filter_multicat(df, 'MentalHealth', mental_health_type).shape[0]/total)
+        else:
+            numbers.append(0)
     output['DevType'] = DevType
     output[mental_health_type] = numbers
-    return output
+    return output.sort_values(by=[mental_health_type])
 
 def getHealthOutput(data, salary_min, salary_max, mental_health_type):
     df = data

@@ -4,6 +4,8 @@
 from dash import Dash, dcc, html
 from dash.dependencies import Input, Output
 import plotly.express as px
+from plotly.subplots import make_subplots
+import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
 import data_util
@@ -25,6 +27,9 @@ app.layout = html.Div([
 
 techs_layout = html.Div([
     html.Div([
+        dcc.Graph(id='techs-graphic')
+    ]),
+    html.Div([
         html.Div([
             dcc.Dropdown(
                 data_util.DevType,
@@ -32,8 +37,7 @@ techs_layout = html.Div([
                 id='devType_t',
                 clearable=False
             )
-        ], style={'width': '48%', 'display': 'inline-block'}),
-
+        ]),
         html.Div([
             dcc.Dropdown(
                 data_util.EdLevel,
@@ -41,8 +45,7 @@ techs_layout = html.Div([
                 id='edLevel_t',
                 clearable=False
             )
-        ], style={'width': '48%', 'display': 'inline-block'}),
-
+        ]),
         html.Div([
             dcc.Dropdown(
                 data_util.Employment,
@@ -50,8 +53,7 @@ techs_layout = html.Div([
                 id='employment_t',
                 clearable=False
             )
-        ], style={'width': '48%', 'display': 'inline-block'}),
-
+        ]),
         html.Div([
             dcc.Dropdown(
                 data_util.Age,
@@ -59,8 +61,7 @@ techs_layout = html.Div([
                 id='age_t',
                 clearable=False
             )
-        ], style={'width': '48%', 'display': 'inline-block'}),
-
+        ]),
         html.Div([
             dcc.Dropdown(
                 data_util.tech_selected_columns[6:],
@@ -68,11 +69,9 @@ techs_layout = html.Div([
                 id='outputName_t',
                 clearable=False
             )
-        ], style={'width': '48%', 'display': 'inline-block'}),
-    ]),
-
-    dcc.Graph(id='techs-graphic')
-])
+        ]),
+    ], style={'display': 'flex', 'flex-direction': 'column', 'width': '40%'})
+], style={'display': 'flex', 'flex-direction': 'row', 'justify-content': 'center', 'align-items': 'center'})
 
 df_techs = pd.read_csv('tech_data.csv')
 
@@ -88,57 +87,50 @@ def update_techs(devType, edLevel, employment, age, outputName):
     data.dropna()
 
     fig = px.scatter(data, x="YearsCodePro", y="CompTotal",
-                 hover_name="techs", text="techs", size='Number', size_max=10)
+                 hover_name="techs", text="techs", size='Number', size_max=10,
+                 title=f"{devType}<br><sup>10 most used technologies</sup>", width=750, height=500)
 
-    fig.update_layout(margin={'l': 40, 'b': 40, 't': 10, 'r': 0}, hovermode='closest')
-    fig.update_xaxes(title="Years of Experience")
-    fig.update_yaxes(title="Salary")
-    fig.update_traces(textposition='top center')
+    fig.update_layout(margin={'l': 40, 'b': 40, 't': 40, 'r': 40}, hovermode='closest')
+    fig.update_xaxes(title="Years of Experience", showspikes=True)
+    fig.update_yaxes(title="Salary", showspikes=True)
+    fig.update_traces(hovertemplate=None, textposition='top center')
     return fig
 
 # --------------- salary_layout : Salaires et Postes --------------- #
 
 salary_layout = html.Div([
+    dcc.Graph(id="salary-graphic"),
     html.Div([
         html.Div([
-        dcc.Dropdown(
-            data_util.DevType,
-            data_util.DevType[0],
-            id='devType_s',
-            clearable=False
-        )
-    ], style={'width': '48%', 'display': 'inline-block'}),
-
+            dcc.Dropdown(
+                data_util.DevType,
+                data_util.DevType[0],
+                id='devType_s',
+                clearable=False)
+        ]),
         html.Div([
             dcc.Dropdown(
                 data_util.EdLevel,
                 data_util.EdLevel[0],
                 id='edLevel_s',
-                clearable=False
-            )
-        ], style={'width': '48%', 'display': 'inline-block'}),
-
+                clearable=False)
+        ]),
         html.Div([
             dcc.Dropdown(
                 data_util.OrgSize,
                 data_util.OrgSize[0],
                 id='orgSize_s',
-                clearable=False
-            )
-        ], style={'width': '48%', 'display': 'inline-block'}),
-
+                clearable=False)
+        ]),
         html.Div([
             dcc.Dropdown(
                 data_util.countries,
                 data_util.countries[0],
                 id='country_s',
-                clearable=False
-            )
-        ], style={'width': '48%', 'display': 'inline-block'}),
-
-        dcc.Graph(id="salary-graphic")
-    ])
-])
+                clearable=False)
+        ])
+    ], style={'display': 'flex', 'flex-direction': 'column', 'width': '40%'})
+], style={'display': 'flex', 'flex-direction': 'row', 'justify-content': 'center', 'align-items': 'center'})
 
 
 df_salary = pd.read_csv('salary_by_category.csv', index_col=0)
@@ -165,7 +157,7 @@ def display_area(devType, edLevel, orgSize, country):
     fig.update_traces(mode="lines", hovertemplate=None)
     fig.update_layout(hovermode="y",
         xaxis_title="Experience",
-        yaxis_title="Yearly Salary [$]",)
+        yaxis_title="Yearly Salary [$]")
 
     fig.update_layout(
         xaxis = dict(
@@ -180,42 +172,58 @@ def display_area(devType, edLevel, orgSize, country):
 
 health_layout = html.Div([
     html.Div([
-        dcc.Graph(id="mood-graphic"),
-        dcc.Graph(id="anxiety-graphic")
-    ], style={'width': '48%', 'display': 'inline-block'}),
+        dcc.Graph(id="mental-health-graphic")
+    ], style={'width':'80%', 'display': 'inline-block'}),
     html.Div([
-        dcc.RangeSlider(
-            data_util.MIN_SALARY,
-            data_util.MAX_SALARY,
-            value=[data_util.MIN_SALARY, data_util.MAX_SALARY],
-            marks=None,
-            id='salary'
-        )
-    ], style={'width': '48%', 'display': 'inline-block'}),
-])
+        html.Div([
+            html.P('Sort by'),
+            dcc.Dropdown(
+                ['Anxiety','Depression'],
+                'Depression',
+                id='sort_type',
+                clearable=False),
+        ], style={'width': '20%', 'display': 'flex', 'flex-direction': 'column'}),
+        html.Div([
+            dcc.RangeSlider(
+                data_util.MIN_SALARY,
+                data_util.MAX_SALARY,
+                value=[data_util.MIN_SALARY, data_util.MAX_SALARY],
+                tooltip={"placement": "bottom", "always_visible": True},
+                marks=None,
+                id='salary')
+        ], style={'width': '80%', 'display': 'inline-box'})
+    ], style={'width': '80%', 'display': 'flex', 'flex-direction': 'row', 'justify-content': 'center'}),
+], style={'display': 'flex', 'flex-direction': 'column', 'justify-content': 'center', 'align-items': 'center'})
 
 df_health = pd.read_csv('mental_health.csv', index_col=0)
 
-def update_mental_health(df, mental_health_type):
-    fig = px.bar(df, x='DevType', y=mental_health_type, orientation='h')
-    fig.update_layout(hovermode="y",
-        xaxis_title="Dev Type",
-        yaxis_title=f"% people with {mental_health_type} disorder")
+@app.callback(
+    Output("mental-health-graphic", "figure"),
+    [Input("salary", "value")],
+    Input('sort_type', "value"))
+def update_mental_health(salary, sort_type):
+    df_d = data_util.getHealthOutput(df_health, salary[0], salary[1], 'Depression')
+    df_a = data_util.getHealthOutput(df_health, salary[0], salary[1], 'Anxiety')
+    if sort_type == "Depression":
+        df_d = df_d.sort_values(by=['Depression'])
+        df_a = df_a.reindex(df_d.index)
+        df_d = df_d.reset_index(drop=True)
+        df_a = df_a.reset_index(drop=True)
+    else:
+        df_a = df_a.sort_values(by=['Anxiety'])
+        df_d = df_d.reindex(df_a.index)
+        df_d = df_d.reset_index(drop=True)
+        df_a = df_a.reset_index(drop=True)
+    fig = make_subplots(rows=1, cols=2, subplot_titles=('Depression', 'Anxiety'))
+    fig.append_trace(go.Bar(x=df_d["Depression"], y=df_d["DevType"], orientation='h'), row=1, col=1)
+    fig.append_trace(go.Bar(x=df_a["Anxiety"], y=df_a["DevType"], orientation='h'), row=1, col=2)
+    fig.update_xaxes(autorange='reversed', col=1)
+    fig.update_yaxes(col=1, nticks=df_d.shape[0])
+    fig.update_yaxes(col=2, showticklabels=False)
+    fig.update_layout(polar = dict(radialaxis = dict(showticklabels = False)))
+    fig.update_layout(showlegend=False, margin=dict(l=20, r=20, t=20, b=20))
+    fig.update_layout(bargap=0.1)
     return fig
-
-@app.callback(
-    Output("mood-graphic", "figure"),
-    [Input("salary", "value")])
-def update_mood(salary):
-    df = data_util.getHealthOutput(df_health, salary[0],salary[1], 'Depression')
-    return update_mental_health(df, 'Depression')
-
-@app.callback(
-    Output("anxiety-graphic", "figure"),
-    [Input("salary", "value")])
-def update_anxiety(salary):
-    df = data_util.getHealthOutput(df_health, salary[0],salary[1], 'Anxiety')
-    return update_mental_health(df, 'Anxiety')
 
 
 # ----------------------------- main ------------------------------- #
