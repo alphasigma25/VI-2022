@@ -231,7 +231,7 @@ def update_mental_health(salary, sort_type):
     fig.update_yaxes(col=1, nticks=df_d.shape[0])
     fig.update_yaxes(col=2, showticklabels=False)
     fig.update_layout(polar = dict(radialaxis = dict(showticklabels = False)))
-    fig.update_layout(showlegend=False, margin=dict(l=20, r=20, t=20, b=20))
+    fig.update_layout(showlegend=False, margin=dict(l=20, r=20, t=40, b=20))
     fig.update_layout(bargap=0.1)
     return fig
 

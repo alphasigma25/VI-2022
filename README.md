@@ -1,5 +1,7 @@
 # VI 2022 - Marché du travail pour les futurs employés du secteur de l’informatique
 
+> Par Anne Sophie Ganguillet et Antony Carrard
+
 ## Guide d'installation
 
 1) Clonez le repository
