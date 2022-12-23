@@ -13,11 +13,11 @@ import data_util
 app = Dash(__name__)
 
 app.layout = html.Div([
-    html.H1('Marché du travail pour les futurs employés dans le secteur de l\'informatique'),
+    html.H1('Work market for future employees in data science and computer science'),
     dcc.Tabs(id="visualisations", value='T1', children=[
-        dcc.Tab(label='Technologies à connaitre', value='T1'),
-        dcc.Tab(label='Salaires et Postes', value='T2'),
-        dcc.Tab(label='Santé mentale au travail', value='T3'),
+        dcc.Tab(label='Technologies to know', value='T1'),
+        dcc.Tab(label='Salaries et Jobs', value='T2'),
+        dcc.Tab(label='Mental health at work', value='T3'),
     ]),
     html.Div(id='rootDiv')
 ])
@@ -31,14 +31,16 @@ techs_layout = html.Div([
     ]),
     html.Div([
         html.Div([
+            html.P("Specialisation"),
             dcc.Dropdown(
                 data_util.DevType,
-                data_util.DevType[0],
+                data_util.DevType[1],
                 id='devType_t',
                 clearable=False
             )
-        ]),
+        ], style={'display': 'flex', 'flex-direction': 'column'}),
         html.Div([
+            html.P("Level of education"),
             dcc.Dropdown(
                 data_util.EdLevel,
                 data_util.EdLevel[0],
@@ -47,29 +49,32 @@ techs_layout = html.Div([
             )
         ]),
         html.Div([
+            html.P("Employment type"),
             dcc.Dropdown(
                 data_util.Employment,
                 data_util.Employment[0],
                 id='employment_t',
                 clearable=False
             )
-        ]),
+        ], style={'display': 'flex', 'flex-direction': 'column'}),
         html.Div([
+            html.P("Age"),
             dcc.Dropdown(
                 data_util.Age,
                 data_util.Age[0],
                 id='age_t',
                 clearable=False
             )
-        ]),
+        ], style={'display': 'flex', 'flex-direction': 'column'}),
         html.Div([
+            html.P("Type of Technology"),
             dcc.Dropdown(
                 data_util.tech_selected_columns[6:],
                 data_util.tech_selected_columns[6],
                 id='outputName_t',
                 clearable=False
             )
-        ]),
+        ], style={'display': 'flex', 'flex-direction': 'column'}),
     ], style={'display': 'flex', 'flex-direction': 'column', 'width': '40%'})
 ], style={'display': 'flex', 'flex-direction': 'row', 'justify-content': 'center', 'align-items': 'center'})
 
@@ -102,33 +107,37 @@ salary_layout = html.Div([
     dcc.Graph(id="salary-graphic"),
     html.Div([
         html.Div([
+            html.P('Specialisation'),
             dcc.Dropdown(
                 data_util.DevType,
                 data_util.DevType[0],
                 id='devType_s',
                 clearable=False)
-        ]),
+        ], style={'display': 'flex', 'flex-direction': 'column'}),
         html.Div([
+            html.P("Education Level"),
             dcc.Dropdown(
                 data_util.EdLevel,
                 data_util.EdLevel[0],
                 id='edLevel_s',
                 clearable=False)
-        ]),
+        ], style={'display': 'flex', 'flex-direction': 'column'}),
         html.Div([
+            html.P("Number of members in organisation"),
             dcc.Dropdown(
                 data_util.OrgSize,
                 data_util.OrgSize[0],
                 id='orgSize_s',
                 clearable=False)
-        ]),
+        ], style={'display': 'flex', 'flex-direction': 'column'}),
         html.Div([
+            html.P("Country"),
             dcc.Dropdown(
                 data_util.countries,
                 data_util.countries[0],
                 id='country_s',
                 clearable=False)
-        ])
+        ], style={'display': 'flex', 'flex-direction': 'column'})
     ], style={'display': 'flex', 'flex-direction': 'column', 'width': '40%'})
 ], style={'display': 'flex', 'flex-direction': 'row', 'justify-content': 'center', 'align-items': 'center'})
 
@@ -184,6 +193,7 @@ health_layout = html.Div([
                 clearable=False),
         ], style={'width': '20%', 'display': 'flex', 'flex-direction': 'column'}),
         html.Div([
+            html.P('Salary'),
             dcc.RangeSlider(
                 data_util.MIN_SALARY,
                 data_util.MAX_SALARY,
